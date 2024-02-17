@@ -1,4 +1,5 @@
 import string
+import sqlite3
 import random
 from datetime import datetime
 from flask import Flask, g
@@ -67,10 +68,39 @@ def page_not_found(e):
 # @app.route('/api/signup')
 # def login():
 #   ...
+@app.route('/api/signup', methods=['POST'])
+def api_signup():
+    user = new_user()
+    return {'id': user['id'], 'name': user['name'], 'api_key': user['api_key'], 'password': user['password']}
+#@app.route('/api/signup', methods=['POST'])
+#def signup():
+#    data = request.json
+#    name = data.get('name')
+#    password = generate_password_hash(data.get('password'))
+#    api_key = ''.join(random.choices(string.ascii_lowercase + string.digits, k=40))
+#    query_db('insert into users (name, password, api_key) values (?, ?, ?)', (name, password, api_key))#
+#    return jsonify({"message": "User created successfully", "api_key": api_key}), 201
 
 
 # @app.route('/api/login')
 # def login():
 #   ... 
 
+#@app.route('/api/login', methods=['POST'])
+#def login():
+#    data = request.json
+#    user = query_db('select * from users where name = ?', (data.get('name'),), one=True)
+#    if user and check_password_hash(user['password'], data.get('password')):
+#        return jsonify({"message": "Login successful", "api_key": user['api_key']})
+#    return jsonify({"message": "Invalid username or password"}), 401
 # ... etc
+@app.route('/api/login', methods=['GET', 'POST'])
+def api_login():
+    if request.method == 'POST':
+        username = request.json.get('username')
+        password = request.json.get('password')
+        user = query_db('SELECT * FROM users WHERE name = ? AND password = ?', [username, password], one=True)
+        if user:
+            return {'api_key': user['api_key']}
+        else:
+            return {'error': 'Invalid credentials'}, 401
